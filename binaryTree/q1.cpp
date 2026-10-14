@@ -37,7 +37,7 @@
 // int main() {
 //     int n;
 //     std::cin >> n;
-    
+
 //     int total = 1 << n;       // 2^n 个国家 (使用位运算左移)
 //     int half = 1 << (n - 1);  // 2^(n-1)，即左右半区的分界线
 
@@ -70,9 +70,9 @@
 
 //     return 0;
 // }
-// 
+//
 // algorithm库里自带一个专门找区间最大元素位置函数std::max_element
-// 
+//
 // #include <iostream>
 // #include <vector>
 // #include <algorithm>
@@ -101,3 +101,69 @@
 // 位于数组下标 [1, 2^n - 1] 的位置。决赛与半决赛的位置（固定不变！）：tree[1]（根节点）
 // ：全场的总冠军。tree[2]（根的左孩子）：左半区冠军（决赛选手之一）。tree[3]（根的右孩子）
 // ：右半区冠军（决赛选手之二）。因此，建好这棵树后，我们根本不用遍历，直接比较 tree[2] 和 tree[3] 谁的能力值小，谁就是亚军！
+
+#include <iostream>
+#include <vector>
+
+struct Team {
+    int id; //国家编号
+    int val; //能力值
+};
+
+int main() {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+
+    int n;
+    std::cin >> n;
+    int m = 1 << n;
+
+    //开一个满二叉树的空间
+    std::vector<Team> tree(2 * m);
+
+    //直接将初始国家读到最底层的叶子结点
+    for (int i = 0; i < m; ++i) {
+        std::cin >> tree[m + i].val;
+        tree[m + i].id = i + 1; //记录国家编号
+    }
+
+    //自底向上模拟淘汰赛晋级
+    for (int u = m - 1; u >= 1; --u) {
+        int left = u * 2;
+        int right = u * 2 + 1;
+
+        //能力值高的国家晋级
+        if (tree[left].val > tree[right].val) {
+            tree[u] = tree[left];
+        } else {
+            tree[u] = tree[right];
+        }
+    }
+
+    //根节点的左右孩子是进入决赛的两个国家
+    if (tree[2].val < tree[3].val) {
+        std::cout << tree[2].id << '\n';
+    } else {
+        std::cout << tree[3].id << '\n';
+    }
+
+    return 0;
+}
+
+// 递归函数：计算以 u 为根的子树的胜者，当前子树负责的国家编号范围是 [l, r]
+// void build(int u, int l, int r, std::vector<Team>& tree, const std::vector<int>& a) {
+//     if (l == r) { // 走到了叶子节点（只剩一个国家）
+//         tree[u] = {l, a[l]};
+//         return;
+//     }
+//     int mid = (l + r) / 2;
+//     build(u * 2, l, mid, tree, a);         // 递归决出左半区胜者
+//     build(u * 2 + 1, mid + 1, r, tree, a); // 递归决出右半区胜者
+
+//     // 左右孩子比拼（在线段树里这一步叫 pushup）
+//     if (tree[u * 2].val > tree[u * 2 + 1].val) {
+//         tree[u] = tree[u * 2];
+//     } else {
+//         tree[u] = tree[u * 2 + 1];
+//     }
+// }
